@@ -12,11 +12,7 @@ names = names_file.readlines()
 nodes_file = open(nodes_path, 'r')
 nodes = nodes_file.readlines()
 
-G = nx.DiGraph()
-
-for line in nodes:
-    src, dest = map(int, line.split())
-    G.add_edge(src, dest)
+G = nx.DiGraph() #overall graph
 
 dic = {}
 for line in names:
@@ -24,11 +20,34 @@ for line in names:
     node = int(split_arr[0])
     name = ' '.join(split_arr[1:])
     dic[node] = name
-pos = nx.spring_layout(G)
-#print(dic[0])
 
+for line in nodes:
+    src, dest = map(int, line.split())
+    if (src == dest or (dic[src] is None or dic[dest] is None)):
+        continue #filter self referencing or inelgible pages
+    G.add_edge(src, dest)
+#print(dic[0])
 #print(G)
-nx.draw(G, pos, with_labels=False, node_size=1500, node_color='lightblue', arrowsize=20)
-nx.draw_networkx_labels(G, pos, labels=dic, font_size=10, font_color='black')
-plt.tight_layout() 
+
+def get_deg(pair):
+    return pair[1] #return the degree
+def lis_maker(lis, n=500):
+    return [node for node, deg in lis][:n]
+in_degrees = list(G.in_degree())
+out_degrees = list(G.out_degree())
+sorted_in_degrees = sorted(in_degrees, key=get_deg, reverse=True)
+sorted_out_degrees = sorted(out_degrees, key=get_deg, reverse=True)
+
+top_in_degrees = lis_maker(sorted_in_degrees, 100)
+top_out_degrees = lis_maker(sorted_out_degrees, 100)
+combined_in_out_degrees = top_in_degrees+top_out_degrees
+
+in_deg_G = G.subgraph(top_in_degrees).copy()#top 100 popular nodes
+out_deg_G = G.subgraph(top_out_degrees).copy()#top 100 influential nodes
+combined_deg_G = G.subgraph(combined_in_out_degrees).copy()#combined
+pos = nx.spring_layout(in_deg_G)
+#print(in_deg_G)
+nx.draw(in_deg_G, pos, with_labels=False, node_size=50, node_color='lightblue', arrowsize=10)
+nx.draw_networkx_labels(in_deg_G, pos, labels={n:dic[n] for n in in_deg_G.nodes}, font_size=10, font_color='black')
+#plt.tight_layout() 
 plt.show()

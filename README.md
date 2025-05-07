@@ -16,3 +16,8 @@ cd OOsman-JCoombs-311H-Project
 unzip page-names-compressed.gz
 unzip topcat-graph-compressed.gz
 ```
+### 3. Install Dependencies
+```bash
+pip install networkx
+pip install matplotlib
+```
